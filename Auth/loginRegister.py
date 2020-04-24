@@ -6,8 +6,12 @@ import linecache
 # Setting the variables
 catchLineLogin = 1
 welcomeRetry = 0
+attemptsMade = 0
+attemptsRemain = 3
 userName = False
+userNameCheck = False
 password = False
+passwordCheck = False
 redirect = False
 
 ### FUNCTIONS ###
@@ -16,19 +20,53 @@ redirect = False
 def redirectReason(userName, redirect):
     if redirect == 'data_load_missing':
         print("Data missing from File.\n--> Registration")
-        registration(userName, redirect)
+        registration(userName, redirect, attemptsRemain, attemptsMade)
+
     elif redirect == 'username_load_error':
         print("--> Registration")
-        registration(userName, redirect)
+        registration(userName, redirect, attemptsRemain, attemptsMade)
+
     elif redirect == 'from_missing_reload':
         print("Data has been saved in the file, under the username '" + userName + "'. You must restart to continue")
         input("Press ENTER")
         exit()
+
+    elif redirectReason == 'user_redirect_admin':
+        print("Exiting")
+        exit()
+
+    elif redirectReason == 'password_load_error':
+        print("Attempt limit reached - Exiting")
+        exit()
+        
+def attemptsRemainCheck(userName, count, catchLineLogin, redirect, presentUserNameIn, attemptsRemain, attemptsMade, eventLogger):
+
+    attemptsRemain = 3 - attemptsMade
+
+    if attemptsRemain == 1:
+        attemptsWord = ' attempt '
     else:
-        pass
+        attemptsWord = ' attempts '
+
+    if attemptsRemain > 0 and eventLogger == 'user_redirect_main':
+        print("'" + userName + "' user not found. You have " + str(attemptsRemain) + attemptsWord + "remaining before being directed to the register page")
+        presentUserNameIn = True  
+    elif attemptsRemain == 0 and eventLogger == 'user_redirect_main':
+        redirectReason(userName, redirect = 'username_load_error')
+
+    elif attemptsRemain > 0 and eventLogger == 'user_redirect_admin':
+        print("You cannot have 'admin' in your username, you have " + str(attemptsRemain) + attemptsWord + "remaining before you're forced to exit")
+    elif attemptsRemain == 0 and eventLogger == 'user_redirect_admin':
+        redirectReason(userName, redirect = 'user_redirect_admin')
+
+
+    elif attemptsRemain > 0 and eventLogger == 'password_load_error':
+        print("Worng Password. You have " + str(attemptsRemain) + attemptsWord + "remaining")
+    elif attemptsRemain == 0 and eventLogger == 'password_load_error_':
+        redirectReason(userName, redirect = 'password_load_error')
 
 #Registration
-def registration(userName, redirect):
+def registration(userName, redirect, attemptsRemain, attemptsMade):
 
     count = 0
 
@@ -84,6 +122,7 @@ def registration(userName, redirect):
     print("Your password must have:\n  - At least 8 (eight) characters\n  - Contain AT LEAST 1 upper character")
 
     while login == False:
+
         password = input("Password: ")
 
         if len(password) < 8:
@@ -103,15 +142,14 @@ def registration(userName, redirect):
             writingLogin = open('Auth/Inc/Login.txt', 'a')
             writingLogin.write(userName + "," + password + "," + firstName + "," + lastName + ",account\n")
             writingLogin.close()
-            redirect = 'from_missing_reload'
+            redirect = 'data_load_missing'
             break
 
     if redirect == 'username_load_error' or redirect == 'data_load_missing':
         redirectReason(userName, redirect = 'from_missing_reload')
 
 #Login
-def login(userName, password, userNameCheck, passwordCheck, passwordFailCounter = 0, userFailCounter = 0, firstTime = True):
-
+def login(userName, password, userNameCheck, passwordCheck, redirect, attemptsRemain, attemptsMade):
     catchLineLogin = 1
     count = 0
 
@@ -129,29 +167,36 @@ def login(userName, password, userNameCheck, passwordCheck, passwordFailCounter 
     infoFile = linecache.getline('Auth/Inc/Login.txt', catchLineLogin)
     dataBlock = infoFile.split(',')
 
+    presentUserNameIn = True
+
     while userNameCheck == False:
-        userName = input("Username: ")
+
+        userContinue = True
+
+        if presentUserNameIn == True:
+            userName = input("Username: ").lower()
+
+        if userName == 'admin' or userName == 'admin1':
+            print("That is an administrative account. Cannot be used.\nTry again using a different username")
+            userContinue = False
+            attemptsMade = attemptsMade + 1
+            attemptsRemainCheck(userName, count, catchLineLogin, redirect, presentUserNameIn, attemptsRemain, attemptsMade, eventLogger= 'user_redirect_admin')
 
         infoFile = linecache.getline('Auth/Inc/Login.txt', catchLineLogin)
         dataBlock = infoFile.split(',')
-        
-        if (dataBlock[0] == userName and count == catchLineLogin) or (userName == dataBlock[0]):
-            userNameCheck = True
-        elif (dataBlock[0] != userName and count == catchLineLogin) or (dataBlock[0] != userName):
-            userFailCounter = userFailCounter + 1 
-            userAttempsRemains = 3 - userFailCounter
-            if catchLineLogin == count:
-                if userFailCounter < 3:
-                    print(userName + " user not found. You have " + str(userAttempsRemains) + " attempts remaining before being directed to the register page")
-                
-                elif userFailCounter == 3:
-                    redirectReason(userName, redirect = "username_load_error")
-                    userNameCheck = True
-        
-        else:
-            catchLineLogin = catchLineLogin + 1
-            continue
+        if userContinue == True:
+            if (dataBlock[0] == userName and count == catchLineLogin) or (userName == dataBlock[0]):
+                userNameCheck = True
+            elif (dataBlock[0] != userName and count == catchLineLogin) or (dataBlock[0] != userName):
+                attemptsMade = attemptsMade + 1
+                attemptsRemainCheck(userName, count, catchLineLogin, redirect, presentUserNameIn, attemptsRemain, attemptsMade, eventLogger= 'user_redirect_main')
+                catchLineLogin = catchLineLogin + 1
+            else:
+                print('blank')
+                catchLineLogin = catchLineLogin + 1
+                presentUserNameIn = False
 
+    print(catchLineLogin)
     while passwordCheck == False:
 
         infoFile = linecache.getline('Auth/Inc/Login.txt', catchLineLogin)
@@ -161,16 +206,13 @@ def login(userName, password, userNameCheck, passwordCheck, passwordFailCounter 
 
         if dataBlock[1] == password:
             print("Hello " + dataBlock[2])
-            break
+            passwordCheck = True
         elif dataBlock[1] != password:
-            passwordFailCounter = passwordFailCounter + 1
-            passwordAttempsRemain = 3 - passwordFailCounter
             passwordCheck = False
-
-            print("Worng Password. You have " + str(passwordAttempsRemain) + " attemps remaining")
-
-            if passwordFailCounter == 3:
-                print("You have failed to log in.\nRestart the program and try again")
+            attemptsMade = attemptsMade + 1
+            attemptsRemainCheck(userName, count, catchLineLogin, redirect, presentUserNameIn, attemptsRemain, attemptsMade, eventLogger= 'password_load_error')
+            if attemptsMade == 3:
+                print("Attempt limit reached - Exiting")
                 exit()
 
 ### END OF FUNCTIONS ###
@@ -179,10 +221,10 @@ def login(userName, password, userNameCheck, passwordCheck, passwordFailCounter 
 while True:
     welcome = input("Login/Register (Type Either 'Register' or 'Login'): ").capitalize()
     if welcome == "Login":
-        login(userName, password, userNameCheck = False, passwordCheck = False)
+        login(userName, password, userNameCheck, passwordCheck, redirect, attemptsRemain, attemptsMade)
         break
     elif welcome == "Register":
-        registration(userName, redirect)
+        registration(userName, redirect, attemptsRemain, attemptsMade)
         break
     elif welcomeRetry == 3:
         print("Exit and try again")
