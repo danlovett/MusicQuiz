@@ -41,30 +41,37 @@ def registration(userName, redirect):
 
     firstName = input("What is your first name?\nFirst Name: ").capitalize()
     lastName = input("What is your last name?\nLast Name: ").capitalize()
+
+    print("Your username must have:\n  - At least 4 characters\n  - No spaces")
+
+    catchLineLogin = 1
+
+    presentUserNameIn = True
     
     while userAccept == False:
-
-        userName = input("Your username must have:\n  - At least 4 characters\n  - No spaces\nUsername: ").lower()
+        
+        if presentUserNameIn == True:
+            userName = input("Username: ").lower()
 
         if len(userName) < 4:
             print("'" + userName + "' was not long enough\nTry again")
-            continue
+            presentUserNameIn = True
         elif ' ' in userName:
             print("'" + userName + "' contains a space.\nTry again")
-            continue
+            presentUserNameIn = True
         elif ' ' in userName and len(userName) < 4:
             print("'" + userName + "' was not long enough and a space was present\nTry again")
-            continue
+            presentUserNameIn = True
         else:
-            catchLineLogin = 1
             login = False
 
             fileInfo = linecache.getline('Auth/Inc/Login.txt', catchLineLogin)
             dataBlock = fileInfo.split(',')
 
-            if (dataBlock[0] == userName and count == catchLineLogin) or (userName == dataBlock[0]):
+            if (dataBlock[0] == userName and count == catchLineLogin) or (userName == dataBlock[0] and count != catchLineLogin):
                 print("Username already taken, try a different one")
                 userAccept = False
+                presentUserNameIn = True
 
             elif (dataBlock [0] != userName and count == catchLineLogin) or (count == 0):
                 print("Username Accepted")
@@ -72,7 +79,7 @@ def registration(userName, redirect):
 
             else:
                 catchLineLogin = catchLineLogin + 1
-                continue
+                presentUserNameIn = False
 
     print("Your password must have:\n  - At least 8 (eight) characters\n  - Contain AT LEAST 1 upper character")
 
@@ -96,6 +103,7 @@ def registration(userName, redirect):
             writingLogin = open('Auth/Inc/Login.txt', 'a')
             writingLogin.write(userName + "," + password + "," + firstName + "," + lastName + ",account\n")
             writingLogin.close()
+            redirect = 'from_missing_reload'
             break
 
     if redirect == 'username_load_error' or redirect == 'data_load_missing':

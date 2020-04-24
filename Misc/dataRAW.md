@@ -12,3 +12,7 @@ from_missing_reload
   Reason: New data in file. Restart to load new file
   Error code = 404
 
+username_exists_1
+  Reason: Username already exists in the database
+  Error Code = 403
+
