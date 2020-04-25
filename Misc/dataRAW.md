@@ -18,4 +18,8 @@ from_missing_reload
 
 password_load_error
   Reason: Password not found in database under linked Username [userName]
-  Errpr code = 403
+  Error code = 403
+
+Push_to_github
+  Reason: Pushing changes to GitHub, remove login credentials [Auth/Inc/(Login/ActiveUser).txt]
+  Error code: N/A

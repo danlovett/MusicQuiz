@@ -2,6 +2,7 @@
 
 #Importing linecache from modules ('time' module later for code delays)
 import linecache
+import os
 
 # Setting the variables
 catchLineLogin = 1
@@ -9,6 +10,8 @@ welcomeRetry = 0
 attemptsMade = 0
 attemptsRemain = 3
 userName = False
+firstName = False
+lastName = False
 userNameCheck = False
 password = False
 passwordCheck = False
@@ -20,15 +23,14 @@ redirect = False
 def redirectReason(userName, redirect):
     if redirect == 'data_load_missing':
         print("Data missing from File.\n--> Registration")
-        registration(userName, redirect, attemptsRemain, attemptsMade)
-
+        registration(userName, redirect)
     elif redirect == 'username_load_error':
         print("--> Registration")
-        registration(userName, redirect, attemptsRemain, attemptsMade)
-
+        registration(userName, redirect)
     elif redirect == 'from_missing_reload':
         print("Data has been saved in the file, under the username '" + userName + "'. You must restart to continue")
         input("Press ENTER")
+        os.system('cls' if os.name == 'nt' else 'clear')
         exit()
 
     elif redirectReason == 'user_redirect_admin':
@@ -66,7 +68,7 @@ def attemptsRemainCheck(userName, count, catchLineLogin, redirect, presentUserNa
         redirectReason(userName, redirect = 'password_load_error')
 
 #Registration
-def registration(userName, redirect, attemptsRemain, attemptsMade):
+def registration(userName, redirect):
 
     count = 0
 
@@ -150,6 +152,7 @@ def registration(userName, redirect, attemptsRemain, attemptsMade):
 
 #Login
 def login(userName, password, userNameCheck, passwordCheck, redirect, attemptsRemain, attemptsMade):
+
     catchLineLogin = 1
     count = 0
 
@@ -192,20 +195,25 @@ def login(userName, password, userNameCheck, passwordCheck, redirect, attemptsRe
                 attemptsRemainCheck(userName, count, catchLineLogin, redirect, presentUserNameIn, attemptsRemain, attemptsMade, eventLogger= 'user_redirect_main')
                 catchLineLogin = catchLineLogin + 1
             else:
-                print('blank')
                 catchLineLogin = catchLineLogin + 1
                 presentUserNameIn = False
 
-    print(catchLineLogin)
     while passwordCheck == False:
 
         infoFile = linecache.getline('Auth/Inc/Login.txt', catchLineLogin)
         dataBlock = infoFile.split(',')
 
+        firstName = dataBlock[2]
+        lastName = dataBlock[3]
+
         password = input("Password: ")
 
         if dataBlock[1] == password:
-            print("Hello " + dataBlock[2])
+            print("Hello " + firstName)
+
+            file = open('Auth/Inc/UserAcive.txt', 'w')
+            file.write(userName + ',' + firstName + ',' + lastName)
+            file.close()
             passwordCheck = True
         elif dataBlock[1] != password:
             passwordCheck = False
@@ -224,8 +232,16 @@ while True:
         login(userName, password, userNameCheck, passwordCheck, redirect, attemptsRemain, attemptsMade)
         break
     elif welcome == "Register":
-        registration(userName, redirect, attemptsRemain, attemptsMade)
+        registration(userName, redirect)
         break
+    elif welcome == 'Push_to_github':
+        file1 = open("Auth/Inc/Login.txt", "r+")
+        file2 = open("Auth/Inc/UserActive.txt", "r+")
+        file1.truncate(0)
+        file2.truncate(0)
+        file1.close()
+        file2.close()
+        exit()
     elif welcomeRetry == 3:
         print("Exit and try again")
         exit()
