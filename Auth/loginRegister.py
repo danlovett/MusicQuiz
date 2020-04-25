@@ -64,7 +64,7 @@ def attemptsRemainCheck(userName, count, catchLineLogin, redirect, presentUserNa
 
     elif attemptsRemain > 0 and eventLogger == 'password_load_error':
         print("Worng Password. You have " + str(attemptsRemain) + attemptsWord + "remaining")
-    elif attemptsRemain == 0 and eventLogger == 'password_load_error_':
+    elif attemptsRemain == 0 and eventLogger == 'password_load_error':
         redirectReason(userName, redirect = 'password_load_error')
 
 #Registration
@@ -190,10 +190,12 @@ def login(userName, password, userNameCheck, passwordCheck, redirect, attemptsRe
         if userContinue == True:
             if (dataBlock[0] == userName and count == catchLineLogin) or (userName == dataBlock[0]):
                 userNameCheck = True
-            elif (dataBlock[0] != userName and count == catchLineLogin) or (dataBlock[0] != userName):
-                attemptsMade = attemptsMade + 1
-                attemptsRemainCheck(userName, count, catchLineLogin, redirect, presentUserNameIn, attemptsRemain, attemptsMade, eventLogger= 'user_redirect_main')
+            elif dataBlock[0] != userName:
+                if count == catchLineLogin:
+                    attemptsMade = attemptsMade + 1
+                    attemptsRemainCheck(userName, count, catchLineLogin, redirect, presentUserNameIn, attemptsRemain, attemptsMade, eventLogger= 'user_redirect_main')
                 catchLineLogin = catchLineLogin + 1
+                presentUserNameIn = False
             else:
                 catchLineLogin = catchLineLogin + 1
                 presentUserNameIn = False
@@ -211,7 +213,7 @@ def login(userName, password, userNameCheck, passwordCheck, redirect, attemptsRe
         if dataBlock[1] == password:
             print("Hello " + firstName)
 
-            file = open('Auth/Inc/UserAcive.txt', 'w')
+            file = open('Auth/Inc/UserActive.txt', 'w')
             file.write(userName + ',' + firstName + ',' + lastName)
             file.close()
             passwordCheck = True
