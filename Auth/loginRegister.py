@@ -158,8 +158,8 @@ def login(userName, password, userNameCheck, passwordCheck, redirect, attemptsRe
 
     try:
         with open('Auth/Inc/Login.txt', 'r') as f:
-            for line in f:
-                count += 1
+            for i in f:
+                count = count + 1
         if count == 0:
             redirectReason(userName, redirect = 'data_load_missing')
     except IOError:
