@@ -3,6 +3,8 @@
 #Importing linecache from modules ('time' module later for code delays)
 import linecache
 import os
+import time
+import sys
 
 # Setting the variables
 catchLineLogin = 1
@@ -22,13 +24,21 @@ redirect = False
 #REDIRECT (User Feedback)
 def redirectReason(userName, redirect):
     if redirect == 'data_load_missing':
-        print("Data missing from File.\n--> Registration")
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print("Data missing from File\n")
+        print("=" * 50)
+        print("Registration")
+        print("=" * 50)
         registration(userName, redirect)
     elif redirect == 'username_load_error':
-        print("--> Registration")
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print("=" * 50)
+        print("Registration")
+        print("=" * 50)
         registration(userName, redirect)
     elif redirect == 'from_missing_reload':
-        print("Data has been saved in the file, under the username '" + userName + "'. You must restart to continue")
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print("Data has been saved with the username '" + userName + "'. You must restart to continue.")
         input("Press ENTER")
         os.system('cls' if os.name == 'nt' else 'clear')
         exit()
@@ -57,18 +67,20 @@ def attemptsRemainCheck(userName, count, catchLineLogin, redirect, presentUserNa
         redirectReason(userName, redirect = 'username_load_error')
 
     elif attemptsRemain > 0 and eventLogger == 'user_redirect_admin':
-        print("You cannot have 'admin' in your username, you have " + str(attemptsRemain) + attemptsWord + "remaining before you're forced to exit")
+        print("You cannot have 'admin' in your username, you have " + str(attemptsRemain) + attemptsWord + "remaining before exiting")
     elif attemptsRemain == 0 and eventLogger == 'user_redirect_admin':
         redirectReason(userName, redirect = 'user_redirect_admin')
 
 
     elif attemptsRemain > 0 and eventLogger == 'password_load_error':
-        print("Worng Password. You have " + str(attemptsRemain) + attemptsWord + "remaining")
+        print("Password incorrect. " + str(attemptsRemain) + attemptsWord + "remaining before exiting.")
     elif attemptsRemain == 0 and eventLogger == 'password_load_error':
         redirectReason(userName, redirect = 'password_load_error')
 
 #Registration
 def registration(userName, redirect):
+
+    attemptsMade = 0
 
     count = 0
 
@@ -79,8 +91,33 @@ def registration(userName, redirect):
     userAccept = False
     login = False
 
-    firstName = input("What is your first name?\nFirst Name: ").capitalize()
-    lastName = input("What is your last name?\nLast Name: ").capitalize()
+
+    while True:
+
+        print("Your Name")
+        print("-" * 50)
+        firstName = input("First Name: ").capitalize()
+        print("-" * 50)
+        lastName = input("Last Name: ").capitalize()
+        fullName = firstName + " " + lastName
+
+        nameCorrect = input("Are the details you entered correct?\nYou entered '" + fullName + "'.\nCorrect? (Y/N): ").capitalize()
+
+        if nameCorrect == "Y":
+            os.system('cls' if os.name == 'nt' else 'clear')
+            print("Full name accepted")
+            break
+        elif nameCorrect == "N":
+            continue
+        else:
+            attemptsMade = attemptsMade + 1
+            if attemptsMade == 3:
+                print("Attempts exceeded. Exiting.")
+                exit()
+                os.system('cls' if os.name == 'nt' else 'clear')
+            else:
+                attemptsRemain = 3 - attemptsMade
+                print("Error. You have " + attemptsRemain + " attempts remaining.")
 
     print("Your username must have:\n  - At least 4 characters\n  - No spaces")
 
@@ -94,13 +131,13 @@ def registration(userName, redirect):
             userName = input("Username: ").lower()
 
         if len(userName) < 4:
-            print("'" + userName + "' was not long enough\nTry again")
+            print("'" + userName + "' didn't contain enough characters. Try again.")
             presentUserNameIn = True
         elif ' ' in userName:
-            print("'" + userName + "' contains a space.\nTry again")
+            print("'" + userName + "' contains a space. Try again.")
             presentUserNameIn = True
         elif ' ' in userName and len(userName) < 4:
-            print("'" + userName + "' was not long enough and a space was present\nTry again")
+            print("'" + userName + "' contains a space and didn't contain enough characters. Try again.")
             presentUserNameIn = True
         else:
             login = False
@@ -109,12 +146,12 @@ def registration(userName, redirect):
             dataBlock = fileInfo.split(',')
 
             if (dataBlock[0] == userName and count == catchLineLogin) or (userName == dataBlock[0] and count != catchLineLogin):
-                print("Username already taken, try a different one")
+                print("Username already taken, please try a different one")
                 userAccept = False
                 presentUserNameIn = True
 
             elif (dataBlock [0] != userName and count == catchLineLogin) or (count == 0):
-                print("Username Accepted")
+                print("Username Accepted\n")
                 userAccept = True
 
             else:
@@ -153,13 +190,17 @@ def registration(userName, redirect):
 #Login
 def login(userName, password, userNameCheck, passwordCheck, redirect, attemptsRemain, attemptsMade):
 
+    print("=" * 50)
+    print("Login")
+    print("=" * 50)
+
     catchLineLogin = 1
     count = 0
 
     try:
         with open('Auth/Inc/Login.txt', 'r') as f:
-            for i in f:
-                count = count + 1
+            for line in f:
+                count += 1
         if count == 0:
             redirectReason(userName, redirect = 'data_load_missing')
     except IOError:
@@ -222,14 +263,14 @@ def login(userName, password, userNameCheck, passwordCheck, redirect, attemptsRe
             attemptsMade = attemptsMade + 1
             attemptsRemainCheck(userName, count, catchLineLogin, redirect, presentUserNameIn, attemptsRemain, attemptsMade, eventLogger= 'password_load_error')
             if attemptsMade == 3:
-                print("Attempt limit reached - Exiting")
+                print("Maximum attempts exceeded. Exiting.\n")
                 exit()
 
 ### END OF FUNCTIONS ###
 
 ### ACCESSING FUNCTIONS/PROGRAM ###
 while True:
-    welcome = input("Login/Register (Type Either 'Register' or 'Login'): ").capitalize()
+    welcome = input("Login or Register\n").capitalize()
     if welcome == "Login":
         login(userName, password, userNameCheck, passwordCheck, redirect, attemptsRemain, attemptsMade)
         break
