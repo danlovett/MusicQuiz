@@ -47,7 +47,7 @@ class User:
     def getLines(self):
         global line
         line = 0
-        with open('login.txt', 'r') as f:
+        with open('Auth/Inc/login.txt', 'r') as f:
             for i in f:
                 i
                 line += 1
@@ -83,7 +83,7 @@ class UserRegister(User):
             if password == passwordConfirm:
                 UserRegister().parseToFile(name, userName, password)
                 authorised = True
-                exit(input(f"Success!{time.sleep(0.2)}\nYou must restart the program to continue to sign in.{time.sleep(0.5)}\nPress ENTER to EXIT."))
+                exit(input("Success!\nYou must restart the program to continue to sign in.\nPress ENTER to EXIT."))
                 
             else:
                 print("Passwords do not match. Try Again.")
@@ -259,7 +259,7 @@ class Validation():
             
     # Handles validation for bothing Login and Registration (name, userName, password, age)
 
-a = input("Hello User! This program requires auth to access.\nR/L: ").capitalize()
+a = input("Hello User! This program requires auth to access. Register (R) or Login (L)?\nR/L: ").capitalize()
 
 if a == 'R':
     UserRegister().showRules(parsingInfo = 'register_INITINFO')
