@@ -1,8 +1,6 @@
 ### FOR FUTURE: use userID for better auth ###
-### CURRENT ERRORS: CHECKING FOR EXISTENCES (dataUserScan) TO WORK ON ###
 
-import linecache
-import time
+import linecache, time, os, sys
 
 userAttempts = 0
 currentLine = 1
@@ -21,13 +19,18 @@ class User:
         elif redirectMsg == 'reset_line':
             currentLine = 1
 
-        contents = linecache.getline('login.txt', currentLine)
+        contents = linecache.getline('Auth/Inc/login.txt', currentLine)
         dataBlock = contents.split('|')
         file_name = dataBlock[0]
         file_userName = dataBlock[1]
         file_password = dataBlock[2]
 
         linecache.clearcache()
+
+    def stateCurrentUser(self, name, userName):
+        with open('Auth/Inc/currentUser.txt', 'w') as f:
+            f.write(name + '|' + userName)
+            f.close(print('Enjoy the game!'))
 
     def displayData(self, userPath):
         global name, userName, password
@@ -56,7 +59,7 @@ class User:
 
         userAttempts += 1
 
-        if userAttempts == 4:
+        if userAttempts == 3:
             print("Attempts exceeded. Try again later.")
             exit(time.sleep(3))
         elif userAttempts == 1 and pathDecision == True:
@@ -80,17 +83,38 @@ class UserRegister(User):
             if password == passwordConfirm:
                 UserRegister().parseToFile(name, userName, password)
                 authorised = True
-                print("Data Saved! Restarting the program now is required for these changes to take effect. Exiting now... (4 seconds)")
-                exit(time.sleep(4))
+                exit(input(f"Success!{time.sleep(0.2)}\nYou must restart the program to continue to sign in.{time.sleep(0.5)}\nPress ENTER to EXIT."))
+                
             else:
+                print("Passwords do not match. Try Again.")
                 User().userTryCount(pathDecision = False)
 
     def parseToFile(self, name, userName, password):
-        with open('login.txt', 'a') as contents:
+        with open('Auth/Inc/login.txt', 'a') as contents:
             contents.write(name + '|' + userName + '|' + password + '|\n')
             contents.close()
 
-    ### ADD SHOWRULES FOR FIELD REQUIREMENTS (FROM DOC)
+    def showRules(self, parsingInfo):
+
+        destLocation = 'Auth/Inc/paramRequirements.txt'
+        
+        if parsingInfo != 'register_INITINFO':
+            if parsingInfo == 'file_getName':
+                print(linecache.getline(destLocation, 1))
+            elif parsingInfo == 'file_getUserName':
+                print(linecache.getline(destLocation, 2))
+            elif parsingInfo == 'file_getPassword':
+                print(linecache.getline(destLocation, 3))
+        elif parsingInfo == 'register_INITINFO':
+            input('We are now going to outline the requirements for Registration. Press ENTER')
+            lineRead = 1
+            for i in range(0, 3):
+                print(linecache.getline(destLocation, lineRead))
+                time.sleep(2.5)
+                lineRead += 1
+                i += 1
+            
+            print("-"*50)
 
 class UserLogin:
     # Handling show UI to user (UserName, Password) | looking for contents in locked file.
@@ -99,8 +123,11 @@ class UserLogin:
         global registerLoginMsg
 
         User().getLines()
-        
         User().fileDataRetrieve(redirectMsg = 'reset_line')
+
+        if name == 'undefined' or userName == 'undefined' or password == 'undefined':
+            print('Unknown Error')
+            exit('Exit.')
 
         cycleComplete = False
         while cycleComplete == False:
@@ -108,6 +135,7 @@ class UserLogin:
                 if userName == file_userName and password == file_password:
                     cycleComplete = True
                     print('Logged In!\nExiting for now, THANKS!')
+                    User().stateCurrentUser(name, userName)
                     exit(time.sleep(3))
                 else:
                     User().fileDataRetrieve(redirectMsg = 'append_line')
@@ -139,55 +167,51 @@ class Validation():
             print("The username OR the password was not found.")
             User().userTryCount(pathDecision = True)
     
-        if (4 - userAttempts) >= 1:
+        if (3 - userAttempts) >= 1:
             print("Try Again.")
 
-        print("\nYou have " + str(4 - userAttempts) + " attempt(s) remaining.")
+        print("\nYou have " + str(3 - userAttempts) + " attempt(s) remaining.")
         print('-'*50)
         User().displayData(userPath = 'user_login')
 
     def dataUserScan(self, rFeedbackLoop, rDetailed):
 
         dataCheckComplete = False
-
-        User().getLines()
-        User().fileDataRetrieve(redirectMsg = 'reset_line')
-
-        print(file_name, file_userName, file_password, '  ', line)
+        rFeedbackLoop = 'authError_stringExistence'
+        firstCheck = 'incomplete'
 
         while dataCheckComplete == False:
 
+            User().getLines()
+            if firstCheck == 'incomplete':
+                User().fileDataRetrieve(redirectMsg = 'reset_line')
+            elif firstCheck == 'complete':
+                User().fileDataRetrieve(redirectMsg = 'append_line')
+
             if line != currentLine:
-                if file_name == name or file_userName == userName:
-                    rDetailed = 'name_user_OCCUPIED'
-                    dataCheckComplete = True
-                elif file_name != name or file_userName != userName:
-                    User().fileDataRetrieve(redirectMsg = 'append_line')
-                elif file_name == name or file_userName != userName:
-                    rDetailed = 'name_OCCUPIED'
-                    dataCheckComplete = True
-                elif file_name != name or file_userName == userName:
+                if file_userName == userName:
                     rDetailed = 'user_OCCUPIED'
                     dataCheckComplete = True
+                elif file_userName != userName:
+                    rFeedbackLoop = 'name_user_ACCEPT'
+                    dataCheckComplete = False
+                firstCheck = 'complete'
 
             else: # currentline == line (end line of file)
-                if file_name == name or file_userName == userName:
-                    rDetailed = 'name_user_OCCUPIED'
-                elif file_name != name or file_userName != userName:
+                if file_userName != userName:
                     rFeedbackLoop = 'name_user_ACCEPT'
-                elif file_name == name or file_userName != userName:
-                    rDetailed = 'name_OCCUPIED'
-                elif file_name != name or file_userName == userName:
+                elif file_userName == userName:
                     rDetailed = 'user_OCCUPIED'
 
                 dataCheckComplete = True
-
+        
+        Validation().registerHandling(rFeedbackLoop, rDetailed)
 
     def registerValidate(self, rFeedbackLoop, rDetailed):
         validate = False
 
         while validate == False:
-            if len(name) <= 3 or name is any(x.isdigit() for x in name):
+            if len(name) <= 3 or name is any(x.isdigit() for x in name) or ' ' not in name:
                 Validation().registerHandling(rFeedbackLoop = 'init_validate_error', rDetailed = 'name')
             elif len(userName) < 4 or ' ' in userName:
                 Validation().registerHandling(rFeedbackLoop = 'init_validate_error', rDetailed = 'userName')
@@ -195,50 +219,42 @@ class Validation():
                 Validation().registerHandling(rFeedbackLoop = 'init_validate_error', rDetailed = 'password')
             else:
                 Validation().dataUserScan(rFeedbackLoop, rDetailed)
-                Validation().registerHandling(rFeedbackLoop, rDetailed)
-                print('Formatting Validation Complete.')
+                print('Formatting Validation Complete!\n')
                 validate = True
 
     def registerHandling(self, rFeedbackLoop, rDetailed):
         if rFeedbackLoop == 'init_validate_error':
             if rDetailed == 'name':
-                contents = linecache.getline('paramRequirements.txt', 1)
-                print(contents)
+                UserRegister().showRules(parsingInfo = 'file_getName')
             elif rDetailed == 'userName':
-                contents = linecache.getline('paramRequirements.txt', 2)
-                print(contents)
+                UserRegister().showRules(parsingInfo = 'file_getUserName')
             elif rDetailed == 'password':
-                contents = linecache.getline('paramRequirements.txt', 3)
-                print(contents)
+                UserRegister().showRules(parsingInfo = 'file_getPassword')
             
             User().userTryCount(pathDecision = False)
             if (4 - userAttempts) >= 1:
                 print("Try Again.")
 
-            print("\nYou have " + str(4 - userAttempts) + " attempt(s) remaining.")
+            print("\nYou have " + str(3 - userAttempts) + " attempt(s) remaining.")
             print('-'*50)
             User().displayData(userPath = 'user_register')
 
         elif rFeedbackLoop == 'authError_stringExistence':
-            if rDetailed == 'name_user_OCCUPIED':
-                print('That name and userName already exists!')
-            elif rDetailed == 'name_OCCUPIED':
-                print('That name already exists!')
-            elif rDetailed == 'user_OCCUPIED':
+            if rDetailed == 'user_OCCUPIED':
                 print('That userName already exists!')
             
             User().userTryCount(pathDecision = False)
-            if (4 - userAttempts) >= 1:
+            if (3 - userAttempts) >= 1:
                 print("Try Again.")
 
-            print("\nYou have " + str(4 - userAttempts) + " attempt(s) remaining.")
+            print("\nYou have " + str(3 - userAttempts) + " attempt(s) remaining.")
             print('-'*50)
             User().displayData(userPath = 'user_register')
             
             
             
         elif rFeedbackLoop == 'name_user_ACCEPT':
-                print('Username Accepted.')
+            os.system('cls' if os.name == 'nt' else "printf '\033c'")
             
             
     # Handles validation for bothing Login and Registration (name, userName, password, age)
@@ -246,7 +262,7 @@ class Validation():
 a = input("Hello User! This program requires auth to access.\nR/L: ").capitalize()
 
 if a == 'R':
-    #UserRegister().showRules()
+    UserRegister().showRules(parsingInfo = 'register_INITINFO')
     User().displayData(userPath = 'user_register')
 else:
     User().displayData(userPath = 'user_login')

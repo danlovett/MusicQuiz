@@ -1,6 +1,6 @@
-Your name was not accepted. Please make sure it's at least 3 characters and no numbers are present.
-Your username was not accepted. Please make sure it's at least 4 characters, and no spaces are present.
-Your password was not accepted. Please make sure it's at least 8-60 characters, contains upper and lower case letters, and at least one number is present. This is for good security on your password. 
+Please make sure your Full Name at least 3 characters and no numbers are present.
+Make sure your Username is at least 4 characters, and no spaces are present.
+Make sure your Password is at least 8-60 characters, contains upper and lower case letters, and at least one number is present. This is for good security on your password. 
 LINES
 1:NAME
 2:USERNAME
