@@ -30,7 +30,8 @@ class User:
     def stateCurrentUser(self, name, userName):
         with open('Auth/Inc/currentUser.txt', 'w') as f:
             f.write(name + '|' + userName)
-            f.close(print('Enjoy the game!'))
+            f.close()
+            print('Enjoy the game!')
 
     def displayData(self, userPath):
         global name, userName, password
@@ -133,17 +134,12 @@ class UserLogin:
         while cycleComplete == False:
             if line != currentLine:
                 if userName == file_userName and password == file_password:
-                    cycleComplete = True
-                    print('Logged In!\nExiting for now, THANKS!')
-                    User().stateCurrentUser(name, userName)
-                    exit(time.sleep(3))
+                    UserLogin().completeContinue()
                 else:
                     User().fileDataRetrieve(redirectMsg = 'append_line')
             else:
                 if userName == file_userName and password == file_password:
-                    cycleComplete = True
-                    print('Logged In!\nExiting for now, THANKS!')
-                    exit(time.sleep(3))
+                    UserLogin().completeContinue()
                 elif userName == file_userName and password != file_password:
                     User().fileDataRetrieve(redirectMsg = 'reset_line')
                     Validation().loginHandling(rFeedbackLoop = 'authError_passwordIncorrect', regLogin = 'user_login')
@@ -154,6 +150,16 @@ class UserLogin:
                 else:
                     User().fileDataRetrieve(redirectMsg = 'reset_line')
                     Validation().loginHandling(rFeedbackLoop = 'auth_userNamePassword_notFound', regLogin = 'user_login')
+
+    def completeContinue(self):
+        global cycleComplete
+
+        cycleComplete = True
+        os.system('cls' if os.name == 'nt' else "printf '\033c'")
+        print('Logged In!')
+        User().stateCurrentUser(name, userName)
+        time.sleep(.1)
+        from App import game
 
 class Validation():
 
