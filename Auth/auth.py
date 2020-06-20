@@ -20,13 +20,14 @@ class User:
         elif redirectMsg == 'reset_line':
             currentLine = 1
 
-        contents = linecache.getline('Auth/Inc/login.txt', currentLine)
-        dataBlock = contents.split('|')
-        file_name = dataBlock[0]
-        file_userName = dataBlock[1]
-        file_password = dataBlock[2]
+        if os.path.isfile('Auth/Inc/login.txt') and os.access('Auth/Inc/login.txt', os.R_OK):
+            contents = linecache.getline('Auth/Inc/login.txt', currentLine)
+            dataBlock = contents.split('|')
+            file_name = dataBlock[0]
+            file_userName = dataBlock[1]
+            file_password = dataBlock[2]
 
-        linecache.clearcache()
+            linecache.clearcache()
 
     def stateCurrentUser(self, name, userName):
         with open('Auth/Inc/currentUser.txt', 'w') as f:
@@ -38,10 +39,15 @@ class User:
         global name, userName, password
         if userPath == 'user_register':
             print('Registration:\n' + '-'*35 )
+            UserRegister().showRules(parsingInfo = 'file_getName')
             name = input('Full Name: ').title()
-
-        userName = input('Username: ').lower()
-        password = input('Password: ')
+            UserRegister().showRules(parsingInfo = 'file_getUserName')
+            userName = input('Username: ').lower()
+            UserRegister().showRules(parsingInfo = 'file_getPassword')
+            password = input('Password: ')
+        else:
+            userName = input('Username: ').lower()
+            password = input('Password: ')
 
         if userPath == 'user_register':
             Validation().registerValidate(rFeedbackLoop, rDetailed)
@@ -51,12 +57,13 @@ class User:
 
     def getLines(self):
         global line
-        line = 0
-        with open('Auth/Inc/login.txt', 'r') as f:
-            for i in f:
-                i
-                line += 1
-    
+        if os.path.isfile('Auth/Inc/login.txt') and os.access('Auth/Inc/login.txt', os.R_OK):
+            line = 0
+            with open('Auth/Inc/login.txt', 'r') as f:
+                for i in f:
+                    i
+                    line += 1
+        
             
     def userTryCount(self, pathDecision):
 
@@ -112,14 +119,6 @@ class UserRegister(User):
                 print(linecache.getline(destLocation, 2))
             elif parsingInfo == 'file_getPassword':
                 print(linecache.getline(destLocation, 3))
-        elif parsingInfo == 'register_INITINFO':
-            input('We are now going to outline the requirements for Registration. Press ENTER')
-            lineRead = 1
-            for i in range(0, 3):
-                print(linecache.getline(destLocation, lineRead))
-                time.sleep(2.5)
-                lineRead += 1
-                i += 1
             
             print("-"*50)
 
@@ -174,9 +173,9 @@ class Validation():
     def newUserUnRemove(self):
         User().fileDataRetrieve(redirectMsg = 'reset_line')
         User().getLines()
-
-        if file_name == 'undefined':
-            open('Auth/Inc/login.txt', 'w').close()
+        if os.path.isfile('Auth/Inc/login.txt') and os.access('Auth/Inc/login.txt', os.R_OK):
+            if file_name == 'undefined':
+                open('Auth/Inc/login.txt', 'w').close()
 
 
     def loginHandling(self, rFeedbackLoop, regLogin):
@@ -197,37 +196,37 @@ class Validation():
         User().displayData(userPath = 'user_login')
 
     def dataUserScan(self, rFeedbackLoop, rDetailed):
+        if os.path.isfile('Auth/Inc/login.txt') and os.access('Auth/Inc/login.txt', os.R_OK):
+            dataCheckComplete = False
+            rFeedbackLoop = 'authError_stringExistence'
+            firstCheck = 'incomplete'
 
-        dataCheckComplete = False
-        rFeedbackLoop = 'authError_stringExistence'
-        firstCheck = 'incomplete'
+            while dataCheckComplete == False:
 
-        while dataCheckComplete == False:
+                User().getLines()
+                if firstCheck == 'incomplete':
+                    User().fileDataRetrieve(redirectMsg = 'reset_line')
+                elif firstCheck == 'complete':
+                    User().fileDataRetrieve(redirectMsg = 'append_line')
 
-            User().getLines()
-            if firstCheck == 'incomplete':
-                User().fileDataRetrieve(redirectMsg = 'reset_line')
-            elif firstCheck == 'complete':
-                User().fileDataRetrieve(redirectMsg = 'append_line')
+                if line != currentLine:
+                    if file_userName == userName:
+                        rDetailed = 'user_OCCUPIED'
+                        dataCheckComplete = True
+                    elif file_userName != userName:
+                        rFeedbackLoop = 'name_user_ACCEPT'
+                        dataCheckComplete = False
+                    firstCheck = 'complete'
 
-            if line != currentLine:
-                if file_userName == userName:
-                    rDetailed = 'user_OCCUPIED'
+                else: # currentline == line (end line of file)
+                    if file_userName != userName:
+                        rFeedbackLoop = 'name_user_ACCEPT'
+                    elif file_userName == userName:
+                        rDetailed = 'user_OCCUPIED'
+
                     dataCheckComplete = True
-                elif file_userName != userName:
-                    rFeedbackLoop = 'name_user_ACCEPT'
-                    dataCheckComplete = False
-                firstCheck = 'complete'
-
-            else: # currentline == line (end line of file)
-                if file_userName != userName:
-                    rFeedbackLoop = 'name_user_ACCEPT'
-                elif file_userName == userName:
-                    rDetailed = 'user_OCCUPIED'
-
-                dataCheckComplete = True
-        
-        Validation().registerHandling(rFeedbackLoop, rDetailed)
+            
+            Validation().registerHandling(rFeedbackLoop, rDetailed)
 
     def registerValidate(self, rFeedbackLoop, rDetailed):
         validate = False
@@ -284,7 +283,6 @@ class Validation():
 a = input("Hello User! This program requires auth to access. Register (R) or Login (L)?\nR/L: ").capitalize()
 
 if a == 'R':
-    UserRegister().showRules(parsingInfo = 'register_INITINFO')
     User().displayData(userPath = 'user_register')
 else:
     Validation().checkData()
