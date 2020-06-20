@@ -29,7 +29,7 @@ class User:
 
     def stateCurrentUser(self, name, userName):
         with open('Auth/Inc/currentUser.txt', 'w') as f:
-            f.write(name + '|' + userName)
+            f.write(f'{name}|{userName}|')
             f.close()
             print('Enjoy the game!')
 
