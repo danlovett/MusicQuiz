@@ -1,6 +1,7 @@
 ### FOR FUTURE: use userID for better auth ###
 
 import linecache, time, os, sys
+sys.path.insert(1, 'App/game')
 
 userAttempts = 0
 currentLine = 1
@@ -35,7 +36,10 @@ class User:
 
     def displayData(self, userPath):
         global name, userName, password
-        name = input('Full Name: ').title()
+        if userPath == 'user_register':
+            print('Registration:\n' + '-'*35 )
+            name = input('Full Name: ').title()
+
         userName = input('Username: ').lower()
         password = input('Password: ')
 
@@ -84,6 +88,7 @@ class UserRegister(User):
             if password == passwordConfirm:
                 UserRegister().parseToFile(name, userName, password)
                 authorised = True
+                os.system('cls' if os.name == 'nt' else "printf '\033c'")
                 exit(input("Success!\nYou must restart the program to continue to sign in.\nPress ENTER to EXIT."))
                 
             else:
@@ -91,8 +96,9 @@ class UserRegister(User):
                 User().userTryCount(pathDecision = False)
 
     def parseToFile(self, name, userName, password):
+        Validation().newUserUnRemove()
         with open('Auth/Inc/login.txt', 'a') as contents:
-            contents.write(name + '|' + userName + '|' + password + '|\n')
+            contents.write(f'{name}|{userName}|{password}|\n')
             contents.close()
 
     def showRules(self, parsingInfo):
@@ -123,13 +129,6 @@ class UserLogin:
     def dataAuth(self, userName, password, userAttempts):
         global registerLoginMsg
 
-        User().getLines()
-        User().fileDataRetrieve(redirectMsg = 'reset_line')
-
-        if name == 'undefined' or userName == 'undefined' or password == 'undefined':
-            print('Unknown Error')
-            exit('Exit.')
-
         cycleComplete = False
         while cycleComplete == False:
             if line != currentLine:
@@ -157,11 +156,28 @@ class UserLogin:
         cycleComplete = True
         os.system('cls' if os.name == 'nt' else "printf '\033c'")
         print('Logged In!')
-        User().stateCurrentUser(name, userName)
+        User().stateCurrentUser(file_name, userName)
         time.sleep(.1)
         from App import game
 
 class Validation():
+
+    def checkData(self):
+        User().getLines()
+        User().fileDataRetrieve(redirectMsg = 'reset_line')
+
+        if file_name == 'undefined' or file_userName == 'undefined' or file_password == 'undefined':
+            print('Looks like you\'re not in the system.\nRedirecting you to registration now.')
+            time.sleep(3), os.system('cls' if os.name == 'nt' else "printf '\033c'")
+            User().displayData(userPath = 'user_register')
+
+    def newUserUnRemove(self):
+        User().fileDataRetrieve(redirectMsg = 'reset_line')
+        User().getLines()
+
+        if file_name == 'undefined':
+            open('Auth/Inc/login.txt', 'w').close()
+
 
     def loginHandling(self, rFeedbackLoop, regLogin):
         if rFeedbackLoop == 'authError_passwordIncorrect':
@@ -271,4 +287,5 @@ if a == 'R':
     UserRegister().showRules(parsingInfo = 'register_INITINFO')
     User().displayData(userPath = 'user_register')
 else:
+    Validation().checkData()
     User().displayData(userPath = 'user_login')

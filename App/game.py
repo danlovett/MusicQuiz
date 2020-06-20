@@ -8,6 +8,9 @@ day = datetime.today().strftime('%Y-%m-%d')
 
 class Game():
 
+    def logout(self):
+        os.remove('Auth/Inc/currentUser.txt')
+
     def getLines(self, f_type):
         global fc_line
         fc_line = 1
@@ -48,34 +51,37 @@ class Game():
             f_type = f'App/Score/{qInitiate}'
             fl_value = 1
 
-        contents = linecache.getline(f'{f_type}.txt', fl_value)
-        dataBlock = contents.split('|')
+        if os.path.isfile(f'{f_type}.txt') and os.access(f'{f_type}.txt', os.R_OK):
+            contents = linecache.getline(f'{f_type}.txt', fl_value)
+            dataBlock = contents.split('|')
 
-        if r_send_value == 'rc_user':
-            name = dataBlock[0]
-            userName = dataBlock[1]
-            nameSplit = name.split(' ')
-            firstName = nameSplit[0]
-            lastName = nameSplit[1]
-            fullName = dataBlock[0]
+            if r_send_value == 'rc_user':
+                name = dataBlock[0]
+                userName = dataBlock[1]
+                nameSplit = name.split(' ')
+                firstName = nameSplit[0]
+                lastName = nameSplit[1]
+                fullName = dataBlock[0]
 
-        elif r_send_value == 'rm_info':
-            f_song = dataBlock[0]
-            f_artist = dataBlock[1]
-            fs_releasey = dataBlock[2]
-            f_song1 = f_song[0]
-            fs_hint1 = f_song[1]
+            elif r_send_value == 'rm_info':
+                f_song = dataBlock[0]
+                f_artist = dataBlock[1]
+                fs_releasey = dataBlock[2]
+                f_song1 = f_song[0]
+                fs_hint1 = f_song[1]
 
-        elif r_send_value == 'av_option':
-            a_availList = dataBlock[0] # to be changed, allowing compile of array to string and saving to new array list n.
+            elif r_send_value == 'av_option':
+                a_availList = dataBlock[0] # to be changed, allowing compile of array to string and saving to new array list n.
 
-        elif r_send_value == 'ch_score':
-            f_highScore = dataBlock[1]
-            f_userName = dataBlock[2]
-            f_fullName = dataBlock[3]
+            elif r_send_value == 'ch_score':
+                f_highScore = dataBlock[1]
+                f_userName = dataBlock[2]
+                f_fullName = dataBlock[3]
 
-        
-        linecache.clearcache()
+                linecache.clearcache()
+        else:
+            print('Data not found.\nMake sure you are logged in!\n\nFor admin: check:\n EXTERNAL REF, FORMAT, ETC...')
+            exit()
     
     def userTryCount(self):
         global userAttempts
@@ -84,7 +90,6 @@ class Game():
 
         if userAttempts == 3:
             print("Attempts exceeded. Try again later.")
-            exit(time.sleep(3))
 
 class MusicHandle:
 
@@ -102,7 +107,7 @@ class MusicHandle:
 
             if f_song == None:
                 input(f'{firstName}, you have completed this set of questions.\nCurrent Score is {active_score}.\nPress ENTER to exit.')
-                exit('Thanks for playing.')
+                break
 
             q_user = input(f'Question {q_number}\n{"-"*50}\nFirst Letter of Song: {f_song1} | Artist: {f_artist}\n{"-"*20}\nSong Name: ').title()
 
@@ -128,7 +133,6 @@ class MusicHandle:
                         break
                     elif pAgain == 'no':
                         print(f'Thanks for playing!\nRemember your username "{userName}" for next time!')
-                        exit(time.sleep(3))
                     else:
                         Game().userTryCount()
                         print('error')
@@ -137,11 +141,11 @@ class MusicHandle:
             b = input('\nPress ENTER to continue. Type "exit" to leave the program\n').lower()
             if b == 'exit':
                 os.system('cls' if os.name=='nt' else 'clear')
-                print('High Score update:')
-                Scoring().highScore(hscore_send_value = False, exitValue = True)
+                print(f'High Score update: {Scoring().highScore(hscore_send_value = False, exitValue = True)}')
                 Scoring().score(s_status = 'exit_writeDisk')
-                exit(f'Goodbye, {firstName}')
+                break
 
+            os.system('cls' if os.name=='nt' else 'clear')
             q_number += 1
         
 class Scoring:
@@ -159,6 +163,8 @@ class Scoring:
         elif s_status == 'user_y_releasey':
             print('R Year Correct') # change this wording
             active_score += 2
+        elif s_status == 'get_score':
+            return active_score
 
         elif s_status == 'exit_writeDisk':
             with open(f'App/Score/{qInitiate}-{userName}.txt', 'a') as f:
@@ -167,11 +173,11 @@ class Scoring:
         
     def highScore(self, hscore_send_value, exitValue):
         if hscore_send_value == False:
-            Game().retrieveData(r_send_value = 'ch_score'), Game().retrieveData(r_send_value = 'rc_user')
+            Game().retrieveData(r_send_value = 'ch_score'), Game().retrieveData(r_send_value = 'rc_user'), Scoring().score(s_status = 'get_score')
             if f_userName == 'undefined' and f_highScore == 'undefined':
                 print(f'Well done! You, {firstName}, have just set the first high score for this genre!')
                 with open(f'App/Score/{qInitiate}.txt', 'w') as f:
-                    f.write(f'{day}|{active_score}|{userName}|{f_fullName}')
+                    f.write(f'{day}|{active_score}|{userName}|{f_fullName}\n')
                     f.close()
                 time.sleep(4)
             
@@ -192,4 +198,18 @@ class Scoring:
                 time.sleep(4)
 
 
+Game().retrieveData(r_send_value = 'rc_user')
+if userName == 'danlovett':
+    resetInfo = input('Reset data? (reset)\n')
+    if resetInfo == 'reset':
+        with open('App/Score/Pop.txt', 'w') as f:
+            f.write('undefined|'*4)
+            f.close()
+
+    else:
+        pass
+
 Game().displayData()
+Game().logout()
+
+exit(f'Goodbye, {firstName}')
