@@ -135,7 +135,7 @@ class Validation:
             while True:
                 cfrmDelData = input('Are you sure you want to remove all user data? (Yes/No)\n').title()
                 if cfrmDelData == 'Yes':
-                    with open('Auth/Inc/Login.txt', 'w') as f: f.write('undefined|'*3), f.close()
+                    with open('Auth/Inc/Login.txt', 'w') as f: f.write(f'{name}|{userName}|{password}'), f.close()
                     print('Successfully Removed.')
                     while True:
                         toReg = input('Do you want to register a new account? (Yes/No)').title()
