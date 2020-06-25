@@ -4,7 +4,9 @@ u_attempt, mGenreType, day = 0, '', datetime.today().strftime('%Y-%m-%d')
 
 class Game():
 
-    def logout(self): os.remove('Auth/Inc/currentUser.txt')
+    def logout(self): 
+        os.remove('Auth/Inc/currentUser.txt')
+        exit(f'Goodbye, {firstName}')
 
     def totline(self, f_type):
         global line
@@ -31,7 +33,8 @@ class Game():
             rd_line = 1
         elif r_redir == 'r_music':
             f_type = f'App/Inc/{q}'
-            rd_line = int(random.choice(qrg)), qrg.remove(rd_line)
+            rd_line = int(random.choice(qrg))
+            qrg.remove(rd_line)
         elif r_redir == 'options':
             f_type = 'App/Inc/.avaliOption'
             rd_line = 1
@@ -44,10 +47,15 @@ class Game():
             dataBlock = contents.split('|')
 
             if r_redir == 'rc_u':
-                name = dataBlock[0], userName = dataBlock[1]
+                name, userName = dataBlock[0], dataBlock[1]
                 nameSplit = name.split(' ')
-                firstName = nameSplit[0], lastName = nameSplit[1], sys_fullName = dataBlock[0]
-            elif r_redir == 'r_music': sys_song = dataBlock[0], sys_artist = dataBlock[1], sys_releaseY = dataBlock[2], sys_fStrSong = sys_song[0], sys_hint = sys_song[1]
+                firstName, lastName, sys_fullName = nameSplit[0], nameSplit[1], dataBlock[0]
+            elif r_redir == 'r_music': 
+                sys_song = dataBlock[0]
+                sys_artist = dataBlock[1]
+                sys_releaseY = dataBlock[2]
+                sys_fStrSong = sys_song[0]
+                sys_hint = sys_song[1]
             elif r_redir == 'options': sys_genre = dataBlock[0] # to be changed, allowing compile of array to string and saving to new array list n.
             elif r_redir == 'rh_scr': sys_highScore = dataBlock[1], sys_userName = dataBlock[2], linecache.clearcache()
         else: print('User Authentification Failed.\nLogin First.\n\nError Code: AUTH_ERROR'), exit()
@@ -64,7 +72,8 @@ class Music:
         bt, r_redir, song_c, q_num, pa_y = False, False, False, 1, 'yes'
         Game().sys_data(r_redir = 'rc_u')
         while bt == False:
-            Game().sys_data(r_redir = 'r_music'), Game().totline(f_type = f'App/Inc/{q}')
+            Game().sys_data(r_redir = 'r_music')
+            Game().totline(f_type = f'App/Inc/{q}')
             if sys_song == None: 
                 input(f'{firstName}, you have completed this set of questions.\nCurrent Score is {score}.\nPress ENTER to exit.')
                 bt = True
@@ -86,7 +95,10 @@ class Music:
                 while btNest == False:
                     pa_y = input(f'{firstName}, that is the end of the set! Want to play again? (yes/no)\n').lower()
                     if pa_y == 'yes': btNest = True, Game().UIdata()
-                    elif pa_y == 'no': btNest = True, print(f'Thanks for playing!\nRemember your username "{userName}" for next time!')
+                    elif pa_y == 'no':
+                        bt = True
+                        btNest = True
+                        print(f'Thanks for playing!\nRemember your username "{userName}" for next time!')
                     else: Game().attempt(), print('error'), t.sleep(.2), os.system('cls' if os.name=='nt' else 'clear')
 
                     if pa_y != 'no':
@@ -131,11 +143,15 @@ class Scoring:
                 with open(f'App/Score/{q}.txt', 'w') as f: f.write(f'{day}|{score}|{userName}|{sys_fullName}'), f.close()
                 t.sleep(4)
 
-Game().sys_data(r_redir = 'rc_u')
-if userName == 'danlovett':
-    r = input('Reset data? (reset)\n').lower()
-    if r == 'reset':
-        with open('App/Score/Pop.txt', 'w') as f: f.write('undefined|'*4), f.close()
-        exit('Complete.')
-Game().UIdata(), Game().logout()
-exit(f'Goodbye, {firstName}')
+try:
+    Game().sys_data(r_redir = 'rc_u')
+    if userName == 'danlovett':
+        r = input('Reset data? (reset)\n').lower()
+        if r == 'reset':
+            with open('App/Score/Pop.txt', 'w') as f: f.write('undefined|'*4), f.close()
+            exit('Complete.')
+    Game().UIdata(), Game().logout()
+
+except KeyboardInterrupt:
+    print()
+    Game().logout()
