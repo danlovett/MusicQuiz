@@ -6,7 +6,6 @@ rfdbk, u_rfdbk = '', ''
 class General:
     def sys_data(self, r_action):
         global sys_name, sys_userName, sys_password, c_line
-        
         if r_action == '+ln': c_line += 1
         else: c_line = 1
 
@@ -22,9 +21,9 @@ class General:
         with open('Auth/Inc/currentUser.txt', 'w') as f: f.write(f'{name}|{userName}|'), f.close()  
         print('Enjoy the game!')
 
-    def UIdata(self, redir):
+    def UIdata(self, a):
         global name, userName, password
-        if redir == 'u_reg':
+        if a == 'r':
             print('Registration:\n' + '-'*35 )
             Register().reg_req(redir = 'f-getN')
             name = input('Full Name: ').title()
@@ -32,12 +31,15 @@ class General:
             userName = input('Username: ').lower()
             Register().reg_req(redir = 'f-getP')
             password = input('Password: ')
-        else: 
+            Validation().valid_reg(rfdbk, u_rfdbk), Register().confirm_user(password)
+        elif a == 'l': 
             userName = input('Username: ').lower()
             password = input('Password: ')
-
-        if redir == 'u_reg': Validation().valid_reg(rfdbk, u_rfdbk), Register().confirm_user(password)
-        else: Login().auth_data(userName, password, u_attempt)
+            Login().auth_data(userName, password, u_attempt, a = 'l')
+        elif a == 'x-rmv-aldata':
+            userName = input('Username: ').lower()
+            password = input('Password: ')
+            General().sys_data(r_action= '.'), Login().auth_data(userName, password, u_attempt, a = 'x-rmv-aldata')
 
     def totline(self):
         global line
@@ -52,8 +54,8 @@ class General:
         if u_attempt == 3: print("Attempts exceeded. Try again later."), exit(time.sleep(3))
         elif u_attempt == 1 and pathDecision == True:
             cRegAsk = input('We noticed that some information was not quite correct (details are mentioned above), do you want to continue with login or registration (Type either "L" OR "R")\nL/R: ').capitalize()
-            if cRegAsk == 'L': General().UIdata(redir = 'lgn')
-            elif cRegAsk == 'R': General().UIdata(redir = 'u_reg')
+            if cRegAsk == 'L': General().UIdata(a)
+            elif cRegAsk == 'R': General().UIdata(a)
             else: General().attempts(pathDecision = True)
 
 
@@ -70,7 +72,9 @@ class Register:
 
     def wFile_newUser(self, name, userName, password):
         Validation().uRemove_def()
-        with open('Auth/Inc/login.txt', 'a') as contents: contents.write(f'{name}|{userName}|{password}|\n'), contents.close()
+        with open('Auth/Inc/login.txt', 'a') as contents: 
+            if l.getline('Auth/Inc/Login.txt', 1) == '': contents.write(f'{name}|{userName}|{password}|'), contents.close()
+            else: contents.write(f'\n{name}|{userName}|{password}|'), contents.close()
 
     def reg_req(self, redir):
         loc = 'Auth/Inc/paramRequirements.txt'
@@ -82,14 +86,17 @@ class Register:
 
 class Login:
 
-    def auth_data(self, userName, password, u_attempt):
+    def auth_data(self, userName, password, u_attempt, a):
+        General().totline()
         cc = False
         while cc == False:
             if line != c_line:
-                if userName == sys_userName and password == sys_password: Login().auth_con()
+                if a == 'x-rmv-aldata': cc = True, Validation().rmvDataVal(userName)
+                elif userName == sys_userName and password == sys_password: Login().auth_con()
                 else: General().sys_data(r_action = '+ln')
             else:
-                if userName == sys_userName and password == sys_password: Login().auth_con()
+                if a == 'x-rmv-aldata': cc = True, Validation().rmvDataVal(userName)
+                elif userName == sys_userName and password == sys_password: Login().auth_con()
                 elif userName == sys_userName and password != sys_password: General().sys_data(r_action = '.x'), Validation().log_handle(rfdbk = 'xerr_pin')
                 elif userName != sys_userName and password == sys_password: General().sys_data(r_action = '.x'), Validation().log_handle(rfdbk = 'xerr_uin')
                 else: General().sys_data(r_action = '.x') , Validation().log_handle(rfdbk = 'xerr_pui_nfd')
@@ -107,11 +114,45 @@ class Validation:
 
     def chk_data(self):
         General().totline()
-        General().sys_data(r_action = 'reset_line')
+        General().sys_data(r_action = '.ln')
         if sys_name == 'undefined' or sys_userName == 'undefined' or sys_password == 'undefined':
             print('Looks like you\'re not in the system.\nRedirecting you to registration now.')
             time.sleep(3), os.system('cls' if os.name == 'nt' else "printf '\033c'")
-            General().UIdata(redir = 'u_reg')
+            General().UIdata(a = 'r')
+        
+    def rmvDataVal(self, userName):
+        General().totline()
+        with open('Auth/Inc/Login.txt', 'r') as f:
+            content = f.readline()
+            dataBlock = content.split('|')
+        
+        if dataBlock[1] != userName and line < 5: conRmvData = False, print("Sorry, you are not eligible to do this.\n\nERROR CODE(S): XERR-NOT-FIRST-USER, XERR-UREQ-FAIL")
+        else: 
+            conRmvData = True
+            print('Continue...')
+
+        if conRmvData == True:
+            while True:
+                cfrmDelData = input('Are you sure you want to remove all user data? (Yes/No)\n').title()
+                if cfrmDelData == 'Yes':
+                    with open('Auth/Inc/Login.txt', 'w') as f: f.write('undefined|'*3), f.close()
+                    print('Successfully Removed.')
+                    while True:
+                        toReg = input('Do you want to register a new account? (Yes/No)').title()
+                        if toReg == 'Yes': General().UIdata(a = 'r')
+                        elif toReg == 'No': break
+                        else: 
+                            General().attempts(pathDecision = False)
+                            print(f'Error.\nYou have {u_attempt} attempt{"" if u_attempt == 1 else "s"} remaining.\n{"-"*50}')
+                    break
+                elif cfrmDelData == 'No':
+                    print('Okay, Program will now exit.')
+                    break
+                else:
+                    General().attempts(pathDecision = False)
+                    print(f'Error.\nYou have {u_attempt} attempt{"" if u_attempt == 1 else "s"} remaining.\n{"-"*50}')
+
+        else: print('Exit.')
 
     def uRemove_def(self):
         General().sys_data(r_action = '.x')
@@ -130,7 +171,7 @@ class Validation:
         if (3 - u_attempt) >= 1: print("Try Again.")
         print("\nYou have " + str(3 - u_attempt) + " attempt(s) remaining.")
         print('-'*50)
-        General().UIdata(redir = 'lgn')
+        General().UIdata(a = 'L')
         os.system('cls' if os.name == 'nt' else "printf '\033c'")
 
     def chk_exist_user(self, rfdbk, u_rfdbk):
@@ -139,10 +180,11 @@ class Validation:
             while dcc == False:
                 General().totline()
                 if fc == 'ic':General().sys_data(r_action = '.x')
-                else: General().sys_data(r_action = '+ln')
+                elif fc == 'c': General().sys_data(r_action = '+ln')
                 if line != c_line and sys_userName == userName: u_rfdbk, dcc = 'u_occ', True
+                elif line != c_line and sys_userName != userName: pass
+                elif line == c_line and sys_userName == userName: u_rfdbk, dcc = 'u_occ', True
                 elif sys_userName != userName and line == c_line: rfdbk, dcc = 'u_acc', True
-                else: u_rfdbk, dcc = 'u_occ', True
                 fc = 'c'
             
             Validation().reg_handle(rfdbk, u_rfdbk)
@@ -165,23 +207,27 @@ class Validation:
             elif u_rfdbk == 'password': Register().reg_req(redir = 'f-getP')
             General().attempts(pathDecision = False)
             print(f"\n{'Try Again.' if 4 - u_attempt >= 1 else ''}\nYou have {3 - u_attempt} attempt{'' if 3 - u_attempt == 1 else 's'} remaining.\n{'-'*50}\n")
-            General().UIdata(redir = 'user_register')
+            General().UIdata(a = 'r')
 
         elif rfdbk == 'un_exst' and u_rfdbk == 'u_occ': 
             print('That userName already exists!')
             General().attempts(pathDecision = False)
             print(f"\n{'Try Again.' if 4 - u_attempt >= 1 else ''}You have {3 - u_attempt} attempt{'' if 3 - u_attempt == 1 else 's'} remaining.\n{'-'*50}\n")
-            General().UIdata(redir = 'u_reg')
+            General().UIdata(a = 'r')
             os.system('cls' if os.name == 'nt' else "printf '\033c'")
              
         elif rfdbk == 'u_acc':
             os.system('cls' if os.name == 'nt' else "printf '\033c'")
 
-a = input("Hello User! This program requires authorisation to access. Register (R) or Login (L)?\nR/L: ").capitalize()
-if a == 'Reset':
-    r = input('Reset data? (reset)\n').lower()
-    if r == 'reset':
-        with open('Auth/Inc/Login.txt', 'w') as f: f.write(f"{'undefined|'*3}"), f.close()
-        exit('Complete.')
-elif a == 'R': General().UIdata(redir = 'u_reg')
-else: Validation().chk_data(), General().UIdata(redir = 'u_lgn')
+try:
+    a = input("Hello User! This program requires authorisation to access. Register (R) or Login (L)?\nR/L: ").lower()
+    if a == 'reset':
+        r = input('Reset data? (reset)\n').lower()
+        if r == 'reset':
+            with open('Auth/Inc/Login.txt', 'w') as f: f.write(f"{'undefined|'*3}"), f.close()
+            exit('Complete.')
+    elif a == 'r': General().UIdata(a)
+    elif a == 'x-rmv-aldata': General().UIdata(a)
+    else: Validation().chk_data(), General().UIdata(a = 'l')
+except KeyboardInterrupt:
+    print('Force Exit.\nAll data has been LOST.'), time.sleep(2), exit('Sorry for the inconvenience.')
