@@ -57,7 +57,10 @@ class Game():
                 sys_fStrSong = sys_song[0]
                 sys_hint = sys_song[1]
             elif r_redir == 'options': sys_genre = dataBlock[0] # to be changed, allowing compile of array to string and saving to new array list n.
-            elif r_redir == 'rh_scr': sys_highScore = dataBlock[1], sys_userName = dataBlock[2], linecache.clearcache()
+            elif r_redir == 'rh_scr':
+                sys_highScore = dataBlock[1]
+                sys_userName = dataBlock[2]
+                linecache.clearcache()
         else: print('User Authentification Failed.\nLogin First.\n\nError Code: AUTH_ERROR'), exit()
     
     def attempt(self):
@@ -86,7 +89,7 @@ class Music:
 
             if song_c == True:
                 qu = input(f'Do you know what year "{sys_song}" by "{sys_artist}" was released?\n{"-"*20}\nRelease Year: ')
-                if qu == str(sys_releaseY): Scoring().score(r_redir = 'ry_c'), Scoring().highscore(r_redir, xvl = False)
+                if qu == str(sys_releaseY): Scoring().score(r_redir = 'ry_c'), Scoring().highscore(hscore = True, xvl = False)
 
             if qrg == []:
                 t.sleep(.5)
@@ -106,7 +109,7 @@ class Music:
                         if b == 'exit':
                             os.system('cls' if os.name=='nt' else 'clear')
                             print(f'High Score update:')
-                            Scoring().highscore(r_redir = False, xvl = True), Scoring().score(r_redir = 'x_wrdsk')
+                            Scoring().highscore(hscore = False, xvl = True), Scoring().score(r_redir = 'x_wrdsk')
                             bt = True
                     else: btNest = True
             os.system('cls' if os.name=='nt' else 'clear')
@@ -119,28 +122,41 @@ class Scoring:
         global score
         try: score = 0
         except NameError: score = 0
-        if r_redir == 'song_c': score += 1, print('Song Correct') # change this wording
-        elif r_redir == 'ry_c': score += 2, print('R Year Correct') # change this wording
+        if r_redir == 'song_c': 
+            score += 1
+            print('Song Correct') # change this wording
+        elif r_redir == 'ry_c':
+            score += 2
+            print('R Year Correct') # change this wording
         elif r_redir == 'g_scr': return score
         elif r_redir == 'x_wrdsk':
-            with open(f'App/Score/{q}-{userName}.txt', 'a') as f: f.write(f'{day}|{score}|{userName}|{sys_fullName}\n'), f.close()
+            with open(f'App/Score/{q}-{userName}.txt', 'a') as f:
+                f.write(f'{day}|{score}|{userName}|{sys_fullName}\n')
+                f.close()
         
-    def highscore(self, r_redir, xvl):
-        if r_redir == False:
+    def highscore(self, hscore, xvl):
+        Game().sys_data(r_redir = 'rh_scr')
+        if hscore == False:
             Game().sys_data(r_redir = 'rh_scr'), Game().sys_data(r_redir = 'rc_u'), Scoring().score(r_redir = 's_scr')
             if sys_userName == 'undefined' and sys_highScore == 'undefined':
                 print('Well done! You have just set the first high score for this genre!')
-                with open(f'App/Score/{q}.txt', 'w') as f: f.write(f'{day}|{score}|{userName}|{sys_fullName}\n'), f.close()
+                with open(f'App/Score/{q}.txt', 'w') as f:
+                    f.write(f'{day}|{score}|{userName}|{sys_fullName}\n')
+                    f.close()
                 t.sleep(4)
             elif score > int(sys_highScore) and sys_userName == userName:
                 print("You just beat your own score! Well done!")
-                with open(f'App/Score/{q}.txt', 'w') as f: f.write(f'{day}|{score}|{userName}|{sys_fullName}'), f.close()
+                with open(f'App/Score/{q}.txt', 'w') as f:
+                    f.write(f'{day}|{score}|{userName}|{sys_fullName}')
+                    f.close()
                 t.sleep(2)
             elif xvl == True:
                 print('No highscore\'s beaten. Try again another day.') 
         elif score > int(sys_highScore) and sys_userName != userName:
                 print(f'Well done! you just over took {sys_userName} (AKA "{sys_fullName}") with your highscore: {score} (their\'s was {sys_highScore}).')
-                with open(f'App/Score/{q}.txt', 'w') as f: f.write(f'{day}|{score}|{userName}|{sys_fullName}'), f.close()
+                with open(f'App/Score/{q}.txt', 'w') as f: 
+                    f.write(f'{day}|{score}|{userName}|{sys_fullName}')
+                    f.close()
                 t.sleep(4)
 
 try:
