@@ -23,22 +23,6 @@ class General:
             sys_password = dataBlock[2]
             l.clearcache()
 
-    def c_user(self, name, userName):
-        with open('Auth/Inc/currentUser.txt', 'w') as f: f.write(f'{name}|{userName}|'), f.close()  
-        print('Enjoy the game!')
-
-    def UIdata(self, a):
-        global name, userName, password
-        if a == 'l': 
-            print('LOGIN\n' + '-'*35)
-            userName = input('Username: ').lower()
-            password = input('Password: ')
-            Login().auth_data(userName, password, u_attempt, a = 'l')
-        elif a == 'x-rmv-aldata':
-            userName = input('Username: ').lower()
-            password = input('Password: ')
-            General().sys_data(r_action= '.'), Login().auth_data(userName, password, u_attempt, a = 'x-rmv-aldata')
-
     def totline(self):
         global line
         if os.path.isfile('Auth/Inc/login.txt') and os.access('Auth/Inc/login.txt', os.R_OK): 
@@ -51,26 +35,21 @@ class General:
         global u_attempt
         u_attempt += 1
         if u_attempt == 3 and pathDecision == False and goto == 'from:confirmP':
-            for i in range(2):
-                s.stdout.write("\033[F")
-                s.stdout.write("\033[K")
-                i
+            General().clearLnR(rng=2)
             print('Account Setup ⨉\nRestart the program.')
+            exit(time.sleep(3))
+        elif u_attempt == 3 and pathDecision == False and goto == 'from:logUPxerr':
+            General().clearLnR(rng=2)
+            print('Account Login ⨉\nRestart the program.')
             exit(time.sleep(3))
         elif u_attempt == 3 and pathDecision == False and goto == 'from:nup':
-            for i in range(7):
-                s.stdout.write("\033[F")
-                s.stdout.write("\033[K")
+            General().clearLnR(rng=7)
             print('Account Setup ⨉\nRestart the program.')
             exit(time.sleep(3))
-        if u_attempt == 3 and pathDecision == False: 
+        elif u_attempt == 3 and pathDecision == False: 
+            General().clearLnR(rng=3)
             print('Error.\nRestart the program.')
             exit(time.sleep(3))
-        elif u_attempt == 1 and pathDecision == True:
-            cRegAsk = input('We noticed that some information was not quite correct (details are mentioned above), do you want to continue with login or registration (Type either "L" OR "R")\nL/R: ').capitalize()
-            if cRegAsk == 'L': General().UIdata(a)
-            elif cRegAsk == 'R': General().UIdata(a)
-            else: General().attempts(pathDecision = True, goto='')
 
 
 class Register:
@@ -141,29 +120,105 @@ class Register:
 
 class Login:
 
-    def auth_data(self, userName, password, u_attempt, a):
-        General().totline()
-        cc = False
-        while cc == False:
-            if line != c_line:
-                if a == 'x-rmv-aldata': cc = True, Validation().rmvDataVal(userName)
-                elif userName == sys_userName and password == sys_password: Login().auth_con()
-                else: General().sys_data(r_action = '+ln')
-            else:
-                if a == 'x-rmv-aldata': cc = True, Validation().rmvDataVal(userName)
-                elif userName == sys_userName and password == sys_password: Login().auth_con()
-                elif userName == sys_userName and password != sys_password: General().sys_data(r_action = '.x'), Validation().log_handle(rfdbk = 'xerr_pin')
-                elif userName != sys_userName and password == sys_password: General().sys_data(r_action = '.x'), Validation().log_handle(rfdbk = 'xerr_uin')
-                else: General().sys_data(r_action = '.x') , Validation().log_handle(rfdbk = 'xerr_pui_nfd')
+    def userName(self):
+        global userName
+        userName = input('Username: ').lower()
+        Login().auth_data(a = 'check:user')
+        General().clearLnR(rng=1)
+        s.stdout.write("\033[F"), s.stdout.write("\033[K")
+        print("Username ✓"), time.sleep(.1)
 
-    def auth_con(self):
-        global cc
-        cc = True
-        os.system('cls' if os.name == 'nt' else "printf '\033c'")
-        print('Logged In!')
-        General().c_user(sys_name, userName)
+    def password(self):
+        global password
+        password = input('Password: ')
+        Login().auth_data(a = 'check:password')
+        General().clearLnR(rng=2)
+        s.stdout.write("\033[F"), s.stdout.write("\033[K")
+        print("Username ✓ Password ✓"), time.sleep(.1)
+
+    def login(self):
+        print('LOGIN\n' + '-'*35)
+        Login().userName()
+        Login().password()
+        s.stdout.write("\033[F"), print("Username ✓ Password ✓ | Account Authorised ✓")
+        with open('Auth/Inc/currentUser.txt', 'w') as f: f.write(f'{sys_name}|{userName}|'), f.close()
+        time.sleep(1)
+        s.stdout.write("\033[F"), s.stdout.write("\033[K"), print(f'Status: Logged in')
+        for i in range(3):
+            print(f'Taking you to the game now{"."*i}')
+            time.sleep(.5)
+            s.stdout.write("\033[F")
         time.sleep(.1)
         from App import game
+
+    def clrUserData(self, a):
+        if a == 'x-rmv-aldata':
+            General().sys_data(r_action = '.ln')
+            if sys_name == 'undefined': 
+                print('No Data found.\nError code: XERR-NDF-TREG\n\nTaking you to registration now. press "Ctrl + C" to stop this operation.')
+                for i in range(5):
+                    print(f'Redirect in {5-i}')
+                    time.sleep(1.2)
+                    General().clearLnR(rng=2)
+                General().clearLnR(rng=6)
+                Register().register(a = 'reg')
+            else:
+                print('LOGIN\n' + '-'*35)
+                Login().userName()
+                Login().password()
+                General().sys_data(r_action= '.'), Login().auth_data(a = 'x-rmv-aldata')
+
+    def auth_data(self, a):
+        General().totline()
+        if a == 'check:user':
+            fc = True
+            while True:
+                if line != c_line:
+                    if fc == True:
+                        General().sys_data(r_action = '.ln')
+                    if userName == sys_userName:
+                        xerr = False
+                        break
+                    else: General().sys_data(r_action = '+ln')
+                    fc = False
+                else:
+                    if fc == True:
+                        General().sys_data(r_action = '.ln')
+                    if userName == sys_userName:
+                        xerr= False
+                        break
+                    else:
+                        xerr = True
+                        break
+        elif a == 'check:password':
+            while True:
+                if line != c_line:
+                    if password == sys_password:
+                        xerr= False
+                        break
+                    else: General().sys_data(r_action = '+ln')
+                else:
+                    if password == sys_password:
+                        xerr= False
+                        break
+                    else:
+                        xerr = True
+                        break
+
+        elif a == 'x-rmv-aldata':
+            Validation().rmvDataVal(userName)
+
+        if xerr == True:
+            General().attempts(pathDecision = False, goto='')
+            if a == 'check:password':
+                print()
+                General().clearLnR(rng=2)
+                print(f'username ✓ password ⨉ {3-u_attempt} {"try" if 3 - u_attempt == 1 else "tries"} remain')
+                Login().password()
+            elif a == 'check:user':
+                General().clearLnR(rng=3)
+                print(f'username ⨉ {3-u_attempt} {"try" if 3 - u_attempt == 1 else "tries"} remain')
+                Login().userName()
 
 class Validation:
 
@@ -173,14 +228,14 @@ class Validation:
         if sys_name == 'undefined' or sys_userName == 'undefined' or sys_password == 'undefined':
             print('Looks like you\'re not in the system.\nRedirecting you to registration now.')
             time.sleep(3), os.system('cls' if os.name == 'nt' else "printf '\033c'")
-            General().UIdata(a = 'r')
+            Register().register(a='reg')
         
     def rmvDataVal(self, userName):
         General().totline()
         with open('Auth/Inc/Login.txt', 'r') as f:
             content = f.readline()
             dataBlock = content.split('|')
-        
+
         if dataBlock[1] != userName and line < 5: conRmvData = False, print("Sorry, you are not eligible to do this.\n\nERROR CODE(S): XERR-NOT-FIRST-USER, XERR-UREQ-FAIL")
         else: 
             conRmvData = True
@@ -190,11 +245,11 @@ class Validation:
             while True:
                 cfrmDelData = input('Are you sure you want to remove all user data? (Yes/No)\n').title()
                 if cfrmDelData == 'Yes':
-                    with open('Auth/Inc/Login.txt', 'w') as f: f.write(f'{name}|{userName}|{password}'), f.close()
+                    with open('Auth/Inc/Login.txt', 'w') as f: f.write(f'{sys_name}|{userName}|{password}'), f.close()
                     print('Successfully Removed.')
                     while True:
                         toReg = input('Do you want to register a new account? (Yes/No)').title()
-                        if toReg == 'Yes': General().UIdata(a = 'r')
+                        if toReg == 'Yes': Register().register(a='reg')
                         elif toReg == 'No': break
                         else: 
                             General().attempts(pathDecision = False,goto='')
@@ -213,21 +268,6 @@ class Validation:
         General().sys_data(r_action = '.x')
         General().totline()
         if (os.path.isfile('Auth/Inc/login.txt') and os.access('Auth/Inc/login.txt', os.R_OK)) and sys_name == 'undefined': open('Auth/Inc/login.txt', 'w').close()
-
-    def log_handle(self, rfdbk):
-        if rfdbk == 'xerr_pin':
-            print("That password isn't linked to that account.")
-            General().attempts(pathDecision = False, goto='')
-        elif rfdbk == 'xerr_uin': print("That username was not found.")
-        elif rfdbk == 'xerr_pui_nfd':
-            print("The username OR the password was not found.")
-            General().attempts(pathDecision = True, goto='')
-        
-        if (3 - u_attempt) >= 1: print("Try Again.")
-        print("\nYou have " + str(3 - u_attempt) + " attempt(s) remaining.")
-        print('-'*50)
-        General().UIdata(a = 'L')
-        os.system('cls' if os.name == 'nt' else "printf '\033c'")
 
     def chk_exist_user(self,):
         if os.path.isfile('Auth/Inc/login.txt') and os.access('Auth/Inc/login.txt', os.R_OK):
@@ -286,7 +326,7 @@ class Validation:
 try:
     a = input("How's it gonna be? Login or Register?\nI'm going to ").lower()
     if a in 'register': os.system('cls' if os.name == 'nt' else "printf '\033c'"), Register().register(a)
-    elif a == 'x-rmv-aldata': os.system('cls' if os.name == 'nt' else "printf '\033c'"), General().UIdata(a)
-    else: os.system('cls' if os.name == 'nt' else "printf '\033c'"), Validation().chk_data(), General().UIdata(a = 'l')
+    elif a == 'x-rmv-aldata': os.system('cls' if os.name == 'nt' else "printf '\033c'"), Login().clrUserData(a='x-rmv-aldata')
+    else: os.system('cls' if os.name == 'nt' else "printf '\033c'"), Validation().chk_data(), Login().login()
 except KeyboardInterrupt:
-    exit('\nForce Exit.\nAll data has been LOST.\nSorry for the inconvenience.')
+    exit('\nForce Exit.\nAll unsaved data has been LOST.')
