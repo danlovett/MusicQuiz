@@ -1,0 +1,5 @@
+Rapid Fire: Ask short burst questions in rapid time. This is normally used if you are revising for an exam or want to just ask questions and get an answer in rapid time!
+Take it slow: Ask longer questions and allow a longer time for answers to be submitted. This is noramlly used for weekly general knowledge questions, or just want to take to sloww!
+Math: Ask simple Division (/), Multiplication (*), Addition (+), or Subtraction(-) questions.
+
+All quizes require you to create the questions, with auto-generate questions to follow in the MusicQuiz progression.
