@@ -29,7 +29,7 @@ class Game():
         global name, firstName, lastName, userName, sys_song, sys_artist, sys_releaseY, sys_fStrSong, sys_hint, sys_genre, rd_line, sys_highScore, sys_userName, sys_fullName
 
         if r_redir == 'rc_u':
-            f_type = 'Auth/Inc/currentUser'
+            f_type = 'auth/lib/authoUserdb'
             rd_line = 1
         elif r_redir == 'r_music':
             f_type = f'App/Inc/{q}'
