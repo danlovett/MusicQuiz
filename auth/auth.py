@@ -137,7 +137,7 @@ class Login:
         print(f'Status: Logged in')
         with open('auth/lib/authoUserdb.txt', 'w') as f: f.write(f'{displayName}|{displayUser}|'), f.close()
         for x in range(3): print(f'Taking you to the game now{"."*x}'), time.sleep(.5), s.stdout.write("\033[F"), x
-        from app import gamen
+        from app import game
 
 class Validation:
 
