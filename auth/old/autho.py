@@ -149,7 +149,7 @@ class Login:
             time.sleep(.5)
             s.stdout.write("\033[F")
         time.sleep(.1)
-        from App import game
+        from app import gamen
 
     def clrUserData(self, a):
         if a == 'x-rmv-aldata':
