@@ -29,6 +29,7 @@ class General:
         else:
             print(
                 f'"{userDecisionTypeMusic}" is not a music genre avaliable for this quiz.\nRestart the program and try again.')
+        os.system('cls' if os.name == 'nt' else 'clear')
 
     def formatUI(self, rangeOfClear):
         for x in range(rangeOfClear):
@@ -125,9 +126,10 @@ class General:
 
 class Game:
     def userContentStandardQuiz(self):
-        global questionWrong
+        global questionWrong, releaseYearInputCorrect, questionPresentUserReleaseYear, questionPresentUser
         dynamicQuestionInt = 1
         General().getDisplayContentUser()
+        ProcessFeatures().writeUserActivityBase()
         questionIterateContinue = True
         questionWrong = 0
         while questionIterateContinue == True:
@@ -135,6 +137,7 @@ class Game:
             General().getDisplayContentSystem('GetStandardQuizData', 'standardQuiz')
             General().getTotalLines(
                 f'{userDecisionTypeMusic}.txt', 'app/lib/standard-quizes')
+            print(f'In Game Content\n{"-"*50}')
             if displaySong == None:
                 input(
                     f'{displayFirstName}, you have completed this set of questions.\nCurrent Score is {dynamicScore}.\nPress ENTER to exit.')
@@ -177,8 +180,10 @@ class Game:
                     questionPresentUserReleaseYear = input(
                         f'Do you know what year "{displaySong}" by "{displayArtist}" was released?\n{"-"*20}\nRelease Year: ')
                     if questionPresentUserReleaseYear == str(displaySongReleaseYear):
+                        releaseYearInputCorrect = True
                         ScoreCheck().userDynamicScoreUpdate('releaseYearMatch:True'), ScoreCheck(
                         ).userHighScoreValidate('Check:HighScoreData')
+                    else: releaseYearInputCorrect = False
 
             if questionRangeIndex == []:
                 os.system('cls' if os.name == 'nt' else 'clear')
@@ -206,6 +211,8 @@ class Game:
                         General().getUserAttemptDynamic('userInputNotValid:+1')
                         questionIterateContinue = False
             dynamicQuestionInt += 1
+            ProcessFeatures().writeUserActivityDetailAnswer()
+            os.system('cls' if os.name == 'nt' else 'clear')
 
 
 class ScoreCheck:
@@ -246,6 +253,21 @@ class ProcessFeatures:
         with open(f'{folderDirectoryQuery}/{fileDirectoryQuery}.txt', 'w') as f:
             f.write(f'{"undefined|"*4}'), f.close()
 
+    def writeUserActivityBase(self):
+        with open(f'app/lib/user-activity/{userDecisionTypeMusic}/{displayUser}.txt', 'a') as f:
+            f.write(f'{currentDayValue} | {displayUser} DATA:\n'), f.close()
+    
+    def writeUserActivityDetailAnswer(self):
+        with open(f'app/lib/user-activity/{userDecisionTypeMusic}/{displayUser}.txt', 'a') as f:
+            f.write(f' Question {str(dynamicQuestionInt)}:  Song input: {questionPresentUser}\n  Release Year input: {questionPresentUserReleaseYear if releaseYearInputCorrect == True else "NA"}\n  Attempts Tried on this Question: {questionWrong}\n\n')
+            f.close()
+
+    '''
+    Here will be a feature that will write and get data from file on how the user done during the game. Includes:
+    attempts tried
+    what questions were correct
+    their answer(s)
+    '''
 
 try:
     General().UIdata()
