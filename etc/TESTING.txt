@@ -1,0 +1,8 @@
+on login: 	displayName{Var} not defined - 'auth.py' LN219 checkNewUserQuery{Func}
+on register: 	bynass displayName{Var} error
+		Name Check Yes
+		Username Check Fail --- displayName{Var} not defined - 'auth.py' LN258 checkRegisterUserInData{Func}
+
+displayName{Var} Fixed - added condition. if none returned, set display name to 'undefined' <<---- Make it to creat file with (undefined|)*4
+
+in game: after entering answer - displayHighScore{var} is not defined LN242 userHighScoreValidate{Func}

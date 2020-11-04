@@ -17,7 +17,7 @@ class General:
             s.stdout.write("\033[F"), s.stdout.write("\033[K"), x
 
     def getDisplayContent(self, action):
-        global displayName, displayUser, displayPassword, dynamicLine
+        global displayName, displayUser, displayPassword, dynamicLine, currentUserIsAdmin, adminName
 
         if action == 'dynamicLine:+1':
             dynamicLine += 1
@@ -34,6 +34,20 @@ class General:
             displayName = individualContent[0]
             displayUser = individualContent[1]
             displayPassword = individualContent[2]
+
+            adminContent = l.getline('auth/lib/userdb.txt', 1)
+            adminIndie = adminContent.split('|')
+            adminNameWhole = adminIndie[0]
+            adminSplitted = adminNameWhole.split(' ')
+            adminName = adminSplitted[0]
+            adminUser = adminIndie[1]
+
+            if adminUser == displayUser:
+                currentUserIsAdmin = True
+
+            if displayName == '':
+                displayName == 'undefined'
+
             l.clearcache()
 
     def getTotalLines(self):
@@ -149,7 +163,9 @@ class Login:
         if action == 'Login:ClearAllDataToGo':
             Validation().clearUserDataActing()
         General().formatUI(1)
-        print(f'Status: Logged in')
+        print(f'Status: Logged in'), time.sleep(2)
+        if currentUserIsAdmin == True:
+            ProcessFeatures().adminManagement(adminName)
         with open('auth/lib/authoUserdb.txt', 'w') as f:
             f.write(f'{displayName}|{displayUser}|'), f.close()
         for x in range(3):
@@ -332,6 +348,13 @@ class ProcessFeatures:
             else:
                 Login().userContentLoginBase('Login:ClearAllDataToGo')
 
+    def adminManagement(self, adminName):
+        print(f'Hello {adminName}\n' + '-'*35)
+        ProcessFeatures().adminOptions()
+        Register().userContentUsername()
+        Register().userContentPassword()
+        Register().userContentConfirmPassword(userInPassword)
+
 
 try:
     action = input(
@@ -349,4 +372,4 @@ try:
 
 except KeyboardInterrupt:
     ProcessFeatures().userExitLogoutForce()
-    exit('\nYou requested to force exit the program.\n{exit}')
+    exit('\nYou requested to force exit the program.')

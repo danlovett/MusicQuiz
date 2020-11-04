@@ -9,6 +9,7 @@ from datetime import datetime
 dynamicAttempt = 0
 dynamicQuestionInt = 1
 dynamicScore = 0
+questionWrong = 0
 questionIterateContinue = True
 currentDayValue = datetime.today().strftime('%Y-%m-%d')
 
@@ -131,13 +132,11 @@ class Game:
         General().getDisplayContentUser()
         ProcessFeatures().writeUserActivityBase()
         questionIterateContinue = True
-        questionWrong = 0
         while questionIterateContinue == True:
             General().getUserAttemptDynamic('CheckAttemptsMadeFail')
             General().getDisplayContentSystem('GetStandardQuizData', 'standardQuiz')
             General().getTotalLines(
                 f'{userDecisionTypeMusic}.txt', 'app/lib/standard-quizes')
-            print(f'In Game Content\n{"-"*50}')
             if displaySong == None:
                 input(
                     f'{displayFirstName}, you have completed this set of questions.\nCurrent Score is {dynamicScore}.\nPress ENTER to exit.')
@@ -145,6 +144,8 @@ class Game:
 
             questionNotCorrect = True
             while questionNotCorrect == True:
+                os.system('cls' if os.name == 'nt' else 'clear')
+                print(f'In Game Content\n{"-"*50}')
                 questionPresentUser = input(
                     f'Question {dynamicQuestionInt}\n{"-"*50}\nFirst Letter of Song: {displayFirstStringItem} | Artist: {displayArtist}\n{"-"*20}\nSong Name: ').title()
                 if questionPresentUser == displaySong:
@@ -183,7 +184,8 @@ class Game:
                         releaseYearInputCorrect = True
                         ScoreCheck().userDynamicScoreUpdate('releaseYearMatch:True'), ScoreCheck(
                         ).userHighScoreValidate('Check:HighScoreData')
-                    else: releaseYearInputCorrect = False
+                else:
+                    releaseYearInputCorrect = False
 
             if questionRangeIndex == []:
                 os.system('cls' if os.name == 'nt' else 'clear')
@@ -256,11 +258,17 @@ class ProcessFeatures:
     def writeUserActivityBase(self):
         with open(f'app/lib/user-activity/{userDecisionTypeMusic}/{displayUser}.txt', 'a') as f:
             f.write(f'{currentDayValue} | {displayUser} DATA:\n'), f.close()
-    
+
     def writeUserActivityDetailAnswer(self):
         with open(f'app/lib/user-activity/{userDecisionTypeMusic}/{displayUser}.txt', 'a') as f:
             f.write(f' Question {str(dynamicQuestionInt)}:  Song input: {questionPresentUser}\n  Release Year input: {questionPresentUserReleaseYear if releaseYearInputCorrect == True else "NA"}\n  Attempts Tried on this Question: {questionWrong}\n\n')
             f.close()
+
+    def checkActiveUser(self):
+        if os.path.isfile('auth/lib/authoUserdb.txt'):
+            pass
+        else:
+            exit('Unable to identify user.\nYou will need to open this game using "main.py".\nThe file is found in the MusicQuiz folder.')
 
     '''
     Here will be a feature that will write and get data from file on how the user done during the game. Includes:
@@ -269,8 +277,10 @@ class ProcessFeatures:
     their answer(s)
     '''
 
+
 try:
+    ProcessFeatures().checkActiveUser()
     General().UIdata()
 except KeyboardInterrupt:
-    # ProcessFeatures().userExitLogoutForce()
-    exit('\nYou requested to force exit the program.\n{exit}')
+    ProcessFeatures().userExitLogoutForce()
+    exit('\nYou requested to force exit the program.')
